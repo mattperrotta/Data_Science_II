@@ -1,0 +1,30 @@
+---
+title: "DS_S2"
+author: "Matthew Perrotta"
+date: "January 28, 2019"
+output: github_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+adv = read.csv('./Advertising.csv') %>% 
+  janitor::clean_names() 
+```
+
+```{r}
+fit1 = lm(sales ~ tv + radio + newspaper, data = adv)
+
+fit1$coefficients
+
+fit2 = lm(tv ~ radio + newspaper, data = adv)
+
+residuals = fit2$residuals
+
+fit3 = lm(sales ~ residuals, data = adv)
+
+fit3$coefficients
+```
+the coefficients for tv in full model and for residuals are the same
