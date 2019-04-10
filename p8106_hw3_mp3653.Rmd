@@ -1,0 +1,98 @@
+---
+title: "Homework 3"
+author: "Matthew Perrotta"
+date: "April 10, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Libraries
+```{r echo = T, message = FALSE, results='hide', warning=FALSE}
+library(ISLR)
+library(tidyverse)
+library(caret)
+library(corrplot)
+library(pROC)
+library(MASS)
+```
+
+```{r}
+data(Weekly)
+
+x = model.matrix(Direction~., Weekly)[,3:8]
+
+y = Weekly$Direction
+```
+
+# Problem (a)
+EDA
+```{r}
+featurePlot(x, 
+            y,
+            scales = list(x=list(relation="free"), 
+                        y=list(relation="free")),
+            plot = "density", pch = "|", 
+            auto.key = list(columns = 2))
+
+corrplot::corrplot(cor(Weekly[2:8]))
+```
+
+# Problem (b)
+Logistic Regression
+```{r}
+glm.fit <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, 
+               data = Weekly, 
+               family = binomial)
+
+summary(glm.fit)
+
+ctrl <- trainControl(method = "repeatedcv",
+                     repeats = 5,
+                     summaryFunction = twoClassSummary,
+                     classProbs = TRUE)
+set.seed(1)
+model.glm <- train(x,
+                   y,
+                   method = "glm",
+                   metric = "ROC",
+                   trControl = ctrl)
+
+summary(model.glm)
+```
+
+# Problem (c)
+Cofusion Matrix
+```{r}
+set.seed(1)
+rowTrain <- createDataPartition(y,
+                                p = 0.75,
+                                list = FALSE)
+
+test.pred.prob  <- predict(glm.fit, newdata = Weekly[-rowTrain,],
+                           type = "response")
+test.pred <- rep("Down", length(test.pred.prob))
+test.pred[test.pred.prob > 0.5] <- "Up"
+
+confusionMatrix(data = as.factor(test.pred),
+                reference = Weekly$Direction[-rowTrain],
+                positive = "Up")
+```
+
+# Problem (d)
+ROC Curve
+```{r}
+roc.glm <- roc(y[-rowTrain], test.pred.prob)
+
+plot(roc.glm, legacy.axes = TRUE, print.auc = TRUE)
+plot(smooth(roc.glm), col = 4, add = TRUE)
+```
+
+# Problem (e)
+Logistic Regression
+```{r}
+
+```
+
