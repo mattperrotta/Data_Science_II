@@ -48,20 +48,10 @@ glm.fit <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
                family = binomial)
 
 summary(glm.fit)
-
-ctrl <- trainControl(method = "repeatedcv",
-                     repeats = 5,
-                     summaryFunction = twoClassSummary,
-                     classProbs = TRUE)
-set.seed(1)
-model.glm <- train(x,
-                   y,
-                   method = "glm",
-                   metric = "ROC",
-                   trControl = ctrl)
-
-summary(model.glm)
 ```
+
+The predictor `Lag2` is the only significant predictor with a p value of 0.0296.
+
 
 # Problem (c)
 Cofusion Matrix
@@ -81,6 +71,8 @@ confusionMatrix(data = as.factor(test.pred),
                 positive = "Up")
 ```
 
+
+
 # Problem (d)
 ROC Curve
 ```{r}
@@ -90,9 +82,92 @@ plot(roc.glm, legacy.axes = TRUE, print.auc = TRUE)
 plot(smooth(roc.glm), col = 4, add = TRUE)
 ```
 
-# Problem (e)
-Logistic Regression
-```{r}
+AUC = 0.500
 
+# Problem (e)
+
+```{r}
+train = subset(Weekly, Year >= 1990 & Year <= 2008)
+test = subset(Weekly, Year > 2008)
+
+trX = train[,2:3]
+
+trY = train$Direction
+
+teX = test[,2:3]
+
+teY = test$Direction
+```
+
+```{r}
+glm.fit2 <- glm(Direction ~ Lag1 + Lag2, 
+               data = train, 
+               family = binomial)
+```
+
+```{r}
+test.pred.prob2  <- predict(glm.fit2, teX,
+                           type = "response")
+test.pred2 <- rep("Down", length(test.pred.prob2))
+test.pred2[test.pred.prob2 > 0.5] <- "Up"
+```
+
+```{r}
+roc.glm2 <- roc(teY, test.pred.prob2)
+
+plot(roc.glm2, legacy.axes = TRUE, print.auc = TRUE)
+plot(smooth(roc.glm2), col = 4, add = TRUE)
+```
+
+AUC = 0.556
+
+# Problem (f)
+
+LDA
+```{r}
+lda.fit <- lda(Direction ~ Lag1 + Lag2, data = train)
+```
+
+```{r}
+lda.pred <- predict(lda.fit, newdata = teX)
+
+roc.lda <- roc(teY, lda.pred$posterior[,2], 
+               levels = c("Down", "Up"))
+
+plot(roc.lda, legacy.axes = TRUE, print.auc = TRUE)
+```
+
+AUC = 0.557
+
+QDA
+```{r}
+qda.fit <- qda(Direction ~ Lag1 + Lag2, data = train)
+```
+
+```{r}
+qda.pred <- predict(qda.fit, newdata = teX)
+
+roc.qda <- roc(teY, qda.pred$posterior[,2], 
+               levels = c("Down", "Up"))
+
+plot(roc.qda, legacy.axes = TRUE, print.auc = TRUE)
+```
+
+AUC = 0.529
+
+# Problem (g)
+
+KNN
+```{r}
+set.seed(1)
+
+model.knn <- train(trX,
+                   trY,
+                   method = "knn",
+                   preProcess = c("center","scale"),
+                   tuneGrid = data.frame(k = seq(1,200,by=5)),
+                   trControl = ctrl)
+
+ggplot(model.knn)
 ```
 
