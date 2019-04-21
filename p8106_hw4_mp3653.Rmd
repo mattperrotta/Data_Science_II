@@ -1,0 +1,51 @@
+---
+title: "Homework 4"
+author: "Matthew Perrotta"
+date: "April 21, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Libraries
+```{r, echo = T, message = FALSE, results='hide', warning=FALSE}
+library(lasso2)
+library(tidyverse)
+library(caret)
+library(ISLR)
+library(rpart)
+library(rpart.plot)
+library(party)
+library(partykit)
+library(randomForest)
+library(ranger)
+library(gbm)
+library(plotmo)
+library(pdp)
+library(lime)
+```
+
+Load Data
+```{r}
+data("Prostate")
+```
+
+Undertanding the Data
+```{r}
+#Checking for missing data
+sum(is.na(Prostate))
+
+#visualize data
+theme1 <- trellis.par.get()
+theme1$plot.symbol$col <- rgb(.2, .4, .2, .5)
+theme1$plot.symbol$pch <- 16
+theme1$plot.line$col <- rgb(.8, .1, .1, 1)
+theme1$plot.line$lwd <- 2
+theme1$strip.background$col <- rgb(.0, .2, .6, .2)
+trellis.par.set(theme1)
+featurePlot(model.matrix(lpsa~., Prostate)[,-1], Prostate$lpsa, plot = "scatter", labels = c("","Y"),
+            type = c("p"), layout = c(4, 2))
+```
+
